@@ -1,4 +1,4 @@
-# crawl4ai-selfhost-kit
+# crawl4ai-skill-mcp
 
 Kit **multi-outils** pour utiliser un serveur **[Crawl4AI](https://github.com/unclecode/crawl4ai)
 self-hosté** (Docker) depuis **Claude** (Agent Skill + MCP), **n8n**, ou n'importe quel client
