@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Markdown d'une page, filtré par pertinence BM25 sur une requête.
-# Renvoie les passages les plus pertinents pour l'intention donnée (pratique SEO).
+# Markdown of a page, filtered by BM25 relevance against a query.
+# Returns the passages most relevant to the given intent (handy for SEO).
 #   export CRAWL4AI_URL="http://localhost:11235"
-#   export CRAWL4AI_TOKEN="<ton-token>"
+#   export CRAWL4AI_TOKEN="<your-token>"
 set -euo pipefail
 
 URL="${1:-https://example.com}"

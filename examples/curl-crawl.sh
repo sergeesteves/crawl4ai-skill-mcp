@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Crawl complet d'une URL → Markdown + liens + médias.
-# Prérequis (variables d'env, JAMAIS en dur ici) :
+# Full crawl of a URL → Markdown + links + media.
+# Prerequisites (env vars, NEVER hard-coded here):
 #   export CRAWL4AI_URL="http://localhost:11235"
-#   export CRAWL4AI_TOKEN="<ton-token>"     # serveur 0.9+ secure-by-default
+#   export CRAWL4AI_TOKEN="<your-token>"     # server 0.9+ secure-by-default
 set -euo pipefail
 
 curl -sX POST "$CRAWL4AI_URL/crawl" \

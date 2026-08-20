@@ -1,44 +1,44 @@
-# Patterns SEO avec Crawl4AI
+# SEO patterns with Crawl4AI
 
-Cas d'usage courants pour un expert SEO / growth, et l'endpoint/tool à utiliser.
+Common use cases for an SEO / growth expert, and the endpoint/tool to use.
 
-## Contenu propre d'une page → `md` mode `fit`
+## Clean page content → `md` mode `fit`
 
-Markdown lisible (Readability), sans nav/pub/footer. Idéal pour analyser un article concurrent.
+Readable Markdown (Readability), no nav/ads/footer. Ideal for analyzing a competitor article.
 
-## Extraire *le passage pertinent* pour une intention → `md` mode `bm25` + `q`
+## Extract *the relevant passage* for an intent → `md` mode `bm25` + `q`
 
-Donne une URL + une requête `q` ; le serveur renvoie les passages **classés par pertinence BM25**.
-Parfait pour « qu'est-ce que cette page dit sur \<intention\> ? » sans ramener toute la page.
+Give a URL + a query `q`; the server returns the passages **ranked by BM25 relevance**. Perfect for
+"what does this page say about \<intent\>?" without pulling in the whole page.
 
-## Métadonnées SEO d'une page → op *SEO Metadata* (nœud n8n) ou extraction
+## Page SEO metadata → *SEO Metadata* op (n8n node) or extraction
 
-Le nœud `crawl4ai-plus` (Advanced) a une op **SEO Metadata** dédiée. En REST/MCP, extrais title,
-meta description, canonical, Open Graph, h1… via `extraction_strategy` (schéma CSS) sur `/crawl`.
+The `crawl4ai-plus` node (Advanced) has a dedicated **SEO Metadata** op. In REST/MCP, extract title,
+meta description, canonical, Open Graph, h1… via `extraction_strategy` (CSS schema) on `/crawl`.
 
-## Extraction structurée **sans LLM** → `extraction_strategy` (JsonCssExtractionStrategy)
+## Structured extraction **without an LLM** → `extraction_strategy` (JsonCssExtractionStrategy)
 
-1. `POST /html` sur une page type pour obtenir le HTML préprocessé.
-2. Construire un **schéma CSS** (sélecteurs → champs).
-3. `POST /crawl` avec `crawler_config.params.extraction_strategy` = ce schéma → `extracted_content`.
+1. `POST /html` on a sample page to get the preprocessed HTML.
+2. Build a **CSS schema** (selectors → fields).
+3. `POST /crawl` with `crawler_config.params.extraction_strategy` = that schema → `extracted_content`.
 
-Déterministe, reproductible, gratuit (pas d'appel LLM) — top pour SERP maison, listes produits, prix.
+Deterministic, reproducible, free (no LLM call) — great for homemade SERPs, product listings, prices.
 
-## Cartographier un site / concurrent → *Discover Links* / crawl multi-URL
+## Map a site / competitor → *Discover Links* / multi-URL crawl
 
-`crawl` avec plusieurs `urls`, ou l'op *Discover Links* (nœud) pour récupérer le maillage interne
-et les liens sortants (avec scoring si activé).
+`crawl` with several `urls`, or the *Discover Links* op (node) to retrieve the internal link graph
+and outbound links (with scoring if enabled).
 
-## Rendu / preuve → `screenshot` / `pdf`
+## Rendering / proof → `screenshot` / `pdf`
 
-Capture d'écran pleine page ou PDF (archivage, audit visuel, avant/après).
+Full-page screenshot or PDF (archiving, visual audit, before/after).
 
-## Pages JS / interactions → `execute_js`
+## JS pages / interactions → `execute_js`
 
-Exécute des snippets JS (scroll, clics, lecture du DOM dynamique) puis renvoie le CrawlResult.
+Run JS snippets (scroll, clicks, reading the dynamic DOM) then return the CrawlResult.
 
-## Combiner avec d'autres outils
+## Combining with other tools
 
-- **Clustering de mots-clés / GSC** : Crawl4AI fournit le contenu ; un service de clustering décide
-  des piliers/pages (voir ta stack SEO).
-- **DataForSEO** : SERP/volumes en complément de ce que Crawl4AI extrait des pages.
+- **Keyword clustering / GSC**: Crawl4AI provides the content; a clustering service decides the
+  pillars/pages (see your SEO stack).
+- **DataForSEO**: SERP/volumes to complement what Crawl4AI extracts from pages.

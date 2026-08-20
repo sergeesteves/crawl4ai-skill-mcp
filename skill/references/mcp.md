@@ -1,36 +1,36 @@
-# Crawl4AI self-hosté — accès MCP
+# Self-hosted Crawl4AI — MCP access
 
-Le serveur expose un **endpoint MCP** (schéma des tools sur `GET {{CRAWL4AI_URL}}/mcp/schema`,
-transport SSE typiquement sous `/mcp`). Il est donc utilisable par **tout client MCP** — Claude
-Desktop/Code, ou tout autre assistant compatible.
+The server exposes an **MCP endpoint** (tool schema at `GET {{CRAWL4AI_URL}}/mcp/schema`, typically
+SSE transport under `/mcp`). It is therefore usable by **any MCP client** — Claude Desktop/Code, or
+any other compatible assistant.
 
-## Brancher le serveur comme connecteur MCP
+## Wiring the server as an MCP connector
 
-La procédure dépend du client, mais le principe est le même : ajouter un **serveur MCP distant** avec
-l'URL du serveur et l'auth Bearer. Consulte la config MCP de ton outil ; côté serveur, tu fournis
-`{{CRAWL4AI_URL}}` (endpoint MCP) + le token. Ne mets jamais le token en dur dans un fichier versionné.
+The procedure depends on the client, but the principle is the same: add a **remote MCP server** with
+the server URL and Bearer auth. Check your tool's MCP config; on the server side you provide
+`{{CRAWL4AI_URL}}` (MCP endpoint) + the token. Never hard-code the token in a version-controlled file.
 
-## Tools exposés
+## Exposed tools
 
 | Tool | Params | Usage |
 |---|---|---|
-| `crawl` | `urls[]`, `browser_config`, `crawler_config`, `crawler_configs`, `hooks` | crawl complet → CrawlResult JSON (markdown, links, media, extracted_content…) |
-| `md` | `url`, `f` (mode), `q` (requête), `c` (cache), `provider`, `temperature` | **Markdown** — voir modes ci-dessous |
-| `html` | `url` | HTML préprocessé (pour bâtir un schéma d'extraction) |
+| `crawl` | `urls[]`, `browser_config`, `crawler_config`, `crawler_configs`, `hooks` | full crawl → CrawlResult JSON (markdown, links, media, extracted_content…) |
+| `md` | `url`, `f` (mode), `q` (query), `c` (cache), `provider`, `temperature` | **Markdown** — see modes below |
+| `html` | `url` | preprocessed HTML (to build an extraction schema) |
 | `screenshot` | `url`, `screenshot_wait_for`, `wait_for_images` | PNG → `artifact_id` + `url` |
 | `pdf` | `url` | PDF → `artifact_id` + `url` |
-| `execute_js` | `url`, `scripts[]` | exécute des snippets JS (IIFE/async **qui retournent une valeur**) → CrawlResult complet |
-| `ask` | `context_type` (code\|doc\|all), `query`, `score_ratio`, `max_results` | **RAG sur la doc/le code de la LIBRAIRIE Crawl4AI** (pas sur une page arbitraire) |
+| `execute_js` | `url`, `scripts[]` | runs JS snippets (IIFE/async **that return a value**) → full CrawlResult |
+| `ask` | `context_type` (code\|doc\|all), `query`, `score_ratio`, `max_results` | **RAG over the Crawl4AI LIBRARY docs/code** (not over an arbitrary page) |
 
-## Modes de `md.f`
+## `md.f` modes
 
-- `fit` (défaut) : Readability → contenu propre.
-- `raw` : DOM → Markdown brut.
-- `bm25` : classement de pertinence **BM25 selon `q`** → passages pertinents pour une intention.
-- `llm` : résumé LLM avec `q` (provider LLM requis côté serveur).
+- `fit` (default): Readability → clean content.
+- `raw`: DOM → raw Markdown.
+- `bm25`: relevance ranking **BM25 against `q`** → passages relevant to an intent.
+- `llm`: LLM summary with `q` (LLM provider required on the server side).
 
-## ⚠️ Ne pas confondre `ask`
+## ⚠️ Don't misuse `ask`
 
-Le tool `ask` interroge la **documentation de la librairie Crawl4AI** (pour aider un assistant à
-générer du code crawl4ai) — **pas** une page web que tu crawles. Pour poser une question *sur une
-page*, crawle-la (`md`/`crawl`) puis raisonne sur le résultat.
+The `ask` tool queries the **Crawl4AI library documentation** (to help an assistant generate
+crawl4ai code) — **not** a web page you're crawling. To ask a question *about a page*, crawl it
+(`md`/`crawl`) then reason over the result.

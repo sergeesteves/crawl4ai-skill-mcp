@@ -1,14 +1,15 @@
 # Attribution
 
-Ce kit documente l'usage d'un serveur **Crawl4AI self-hosté**. Il **ne modifie ni ne redistribue**
-le code source de Crawl4AI, et ne re-héberge pas la documentation SDK officielle (il y renvoie).
+This kit documents how to use a **self-hosted Crawl4AI server**. It **neither modifies nor
+redistributes** the Crawl4AI source code, and does not re-host the official SDK documentation (it
+links to it).
 
-- **Crawl4AI** — crawler open-source sous **Apache-2.0** :
-  <https://github.com/unclecode/crawl4ai> · doc & skill officiel : <https://docs.crawl4ai.com/>
-  Le SDK Python (`AsyncWebCrawler`) et la référence SDK sont maintenus par le projet upstream.
-- **n8n-nodes-crawl4ai-plus** — nœud communautaire n8n (auteur : msoukhomlinov) :
+- **Crawl4AI** — open-source crawler under **Apache-2.0**:
+  <https://github.com/unclecode/crawl4ai> · docs & official skill: <https://docs.crawl4ai.com/>
+  The Python SDK (`AsyncWebCrawler`) and the SDK reference are maintained by the upstream project.
+- **n8n-nodes-crawl4ai-plus** — community n8n node (author: msoukhomlinov):
   <https://github.com/msoukhomlinov/n8n-nodes-crawl4ai-plus>
 
-Les schémas d'endpoints et de tools décrits ici proviennent de la doc publique de Crawl4AI et de
-l'introspection d'un serveur self-hosté standard (image `unclecode/crawl4ai`). Vérifie toujours les
-champs exacts de **ta** version via `GET {{CRAWL4AI_URL}}/schema` (public, sans token).
+The endpoint and tool schemas described here come from Crawl4AI's public documentation and from
+introspecting a standard self-hosted server (`unclecode/crawl4ai` image). Always verify the exact
+fields for **your** version via `GET {{CRAWL4AI_URL}}/schema` (public, no token).

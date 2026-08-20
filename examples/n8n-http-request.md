@@ -1,16 +1,16 @@
-# Exemple n8n — nœud HTTP Request vers Crawl4AI
+# n8n example — HTTP Request node to Crawl4AI
 
-Config du nœud **HTTP Request** (sans dépendre du nœud communautaire) :
+**HTTP Request** node config (without relying on the community node):
 
-| Champ | Valeur |
+| Field | Value |
 |---|---|
 | Method | `POST` |
-| URL | `={{ $env.CRAWL4AI_URL }}/crawl` (ou `/md`) |
-| Authentication | Generic Credential → **Header Auth** : Name `Authorization`, Value `Bearer <token>` (dans le credential) |
+| URL | `={{ $env.CRAWL4AI_URL }}/crawl` (or `/md`) |
+| Authentication | Generic Credential → **Header Auth**: Name `Authorization`, Value `Bearer <token>` (in the credential) |
 | Send Headers | `Content-Type: application/json` |
 | Send Body | JSON |
 
-Body (JSON) — respecter le wrapper `{type, params}` :
+Body (JSON) — respect the `{type, params}` wrapper:
 
 ```json
 {
@@ -19,13 +19,13 @@ Body (JSON) — respecter le wrapper `{type, params}` :
 }
 ```
 
-Body pour `/md` (markdown filtré BM25) :
+Body for `/md` (BM25-filtered markdown):
 
 ```json
 { "url": "={{ $json.url }}", "f": "bm25", "q": "={{ $json.intent }}", "c": "0" }
 ```
 
-Sortie à mapper : `{{ $json.results[0].markdown }}`, `.cleaned_html`, `.links`,
-`.extracted_content` (si `extraction_strategy`).
+Output to map: `{{ $json.results[0].markdown }}`, `.cleaned_html`, `.links`,
+`.extracted_content` (if `extraction_strategy`).
 
-> Garde l'URL du serveur en variable (`$env.CRAWL4AI_URL`) et le token dans le **credential** — jamais en dur.
+> Keep the server URL in a variable (`$env.CRAWL4AI_URL`) and the token in the **credential** — never hard-coded.

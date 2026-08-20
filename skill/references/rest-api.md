@@ -1,33 +1,33 @@
-# Crawl4AI self-hosté — API REST
+# Self-hosted Crawl4AI — REST API
 
-Serveur : image `unclecode/crawl4ai`, port par défaut `11235`. Base : `{{CRAWL4AI_URL}}`.
+Server: `unclecode/crawl4ai` image, default port `11235`. Base: `{{CRAWL4AI_URL}}`.
 
-## Authentification
+## Authentication
 
-- **0.9.0 = secure-by-default** : token requis → en-tête `Authorization: Bearer <token>`.
-- Si `security.jwt_enabled: true` (dans `config.yml`) : `POST /token` (`{ "email": "..." }`) → JWT, puis Bearer.
-- 0.8.x : sécurité off par défaut (pas de token). **Vérifie ta config.**
+- **0.9.0 = secure-by-default**: token required → `Authorization: Bearer <token>` header.
+- If `security.jwt_enabled: true` (in `config.yml`): `POST /token` (`{ "email": "..." }`) → JWT, then Bearer.
+- 0.8.x: security off by default (no token). **Check your config.**
 
 ## Endpoints
 
-| Méthode | Path | Body | Renvoie |
+| Method | Path | Body | Returns |
 |---|---|---|---|
-| POST | `/crawl` | cf. § body | `{ "results": [...] }` (markdown, cleaned_html, links, media, screenshot, pdf, extracted_content…) |
-| POST | `/crawl/stream` | idem `/crawl` | NDJSON streamé (1 résultat par ligne) |
-| POST | `/md` | `{ "url", "f"?, "q"?, "c"? }` | Markdown seul (voir modes ci-dessous) |
-| POST | `/html` | `{ "url" }` | HTML préprocessé (pour bâtir un schéma d'extraction) |
-| POST | `/screenshot` | `{ "url", "screenshot_wait_for"?, "output_path"? }` | PNG (base64 ou id d'artefact en 0.9) |
+| POST | `/crawl` | see § body | `{ "results": [...] }` (markdown, cleaned_html, links, media, screenshot, pdf, extracted_content…) |
+| POST | `/crawl/stream` | same as `/crawl` | streamed NDJSON (1 result per line) |
+| POST | `/md` | `{ "url", "f"?, "q"?, "c"? }` | Markdown only (see modes below) |
+| POST | `/html` | `{ "url" }` | preprocessed HTML (to build an extraction schema) |
+| POST | `/screenshot` | `{ "url", "screenshot_wait_for"?, "output_path"? }` | PNG (base64 or artifact id in 0.9) |
 | POST | `/pdf` | `{ "url", "output_path"? }` | PDF |
-| POST | `/execute_js` | `{ "url", "scripts": ["return document.title", ...] }` | CrawlResult complet + retours JS |
+| POST | `/execute_js` | `{ "url", "scripts": ["return document.title", ...] }` | full CrawlResult + JS return values |
 | GET | `/health` | — | `{ "status": "healthy", "version": "..." }` (public) |
-| GET | `/schema` | — | schéma complet de l'API (public) |
-| GET | `/metrics` | — | métriques Prometheus |
-| GET | `/mcp/schema` | — | schéma des tools MCP (le serveur expose aussi MCP) |
+| GET | `/schema` | — | full API schema (public) |
+| GET | `/metrics` | — | Prometheus metrics |
+| GET | `/mcp/schema` | — | MCP tool schema (the server also exposes MCP) |
 
-## ⚠️ Piège du body `/crawl` : le wrapper `{ type, params }`
+## ⚠️ The `/crawl` body gotcha: the `{ type, params }` wrapper
 
-`browser_config` / `crawler_config` **ne sont pas des dicts plats** (forme sérialisée `Config.dump()`),
-et les **enums passent en string** :
+`browser_config` / `crawler_config` **are not flat dicts** (serialized `Config.dump()` form),
+and **enums are passed as strings**:
 
 ```json
 {
@@ -39,19 +39,19 @@ et les **enums passent en string** :
 
 ## `/md` — modes (`f`)
 
-- `fit` (défaut) : extraction *Readability* → contenu propre.
-- `raw` : DOM → Markdown brut.
-- `bm25` : **classement de pertinence BM25 par rapport à `q`** → ne garde que les passages pertinents.
-- `llm` : résumé LLM avec `q` (nécessite un provider LLM configuré côté serveur).
+- `fit` (default): *Readability* extraction → clean content.
+- `raw`: DOM → raw Markdown.
+- `bm25`: **BM25 relevance ranking against `q`** → keeps only the relevant passages.
+- `llm`: LLM summary with `q` (requires an LLM provider configured on the server side).
 
-`c` = mode de cache (`"0"` par défaut).
+`c` = cache mode (`"0"` by default).
 
-## Champs `crawler_config.params` fréquents
+## Common `crawler_config.params` fields
 
 `cache_mode` (`"bypass"|"enabled"|"disabled"`), `css_selector`, `excluded_tags`,
 `word_count_threshold`, `wait_for`, `page_timeout`, `js_code`, `scan_full_page`,
-`remove_consent_popups`, `extraction_strategy` (ex. `JsonCssExtractionStrategy` → extraction **sans
-LLM**), `screenshot`, `pdf`, `check_robots_txt`, `exclude_external_links`.
+`remove_consent_popups`, `extraction_strategy` (e.g. `JsonCssExtractionStrategy` → extraction
+**without an LLM**), `screenshot`, `pdf`, `check_robots_txt`, `exclude_external_links`.
 
 ## curl
 
@@ -63,7 +63,7 @@ curl -sX POST "$CRAWL4AI_URL/crawl" \
        "crawler_config":{"type":"CrawlerRunConfig","params":{"cache_mode":"bypass"}}}'
 ```
 
-## Vérifier ta version (sans token)
+## Check your version (no token)
 
-`GET {{CRAWL4AI_URL}}/health` (→ version) et `GET {{CRAWL4AI_URL}}/schema` (→ champs exacts de ta
-version) sont publics — cale toujours ton body dessus plutôt que sur la doc générique.
+`GET {{CRAWL4AI_URL}}/health` (→ version) and `GET {{CRAWL4AI_URL}}/schema` (→ exact fields for your
+version) are public — always base your body on those rather than on the generic docs.
