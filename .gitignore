@@ -1,0 +1,9 @@
+# Windows / Google Drive artifacts
+desktop.ini
+Thumbs.db
+.DS_Store
+
+# Secrets — ne jamais committer d'URL de prod ni de token
+.env
+*.env
+secrets.*
