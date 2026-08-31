@@ -11,11 +11,14 @@ Readable Markdown (Readability), no nav/ads/footer. Ideal for analyzing a compet
 Give a URL + a query `q`; the server returns the passages **ranked by BM25 relevance**. Perfect for
 "what does this page say about \<intent\>?" without pulling in the whole page.
 
-## Keep image references + alt → `md` mode `raw`
+## Keep image references + alt → `md` mode `raw` (with care)
 
 `fit` (the `/md` default) strips images; **`raw` preserves `![alt](url)`** (alt text + URL) at no extra
-bandwidth — image bytes aren't downloaded either way (`text_mode` disables images). Handy for content
-briefs or reconstructing an article's media. See [`mcp.md`](mcp.md) → `md.f` modes.
+bandwidth. But `raw` also drags in boilerplate (nav/menu/footer, 2–6× more links, `data:image/svg`
+menu icons), so it's risky when the output is **truncated or fed straight to an LLM** — the nav at the
+top eats the budget. Use it only when you actually need the image refs, and **clean it first**; or
+prefer **`/crawl`** (structured `media.images` + a clean markdown) if you just need to know the page
+uses visuals. See [`mcp.md`](mcp.md) → `md.f` modes.
 
 ## Page SEO metadata → *SEO Metadata* op (n8n node) or extraction
 
