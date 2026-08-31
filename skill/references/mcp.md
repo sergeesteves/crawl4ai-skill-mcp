@@ -24,10 +24,14 @@ the server URL and Bearer auth. Check your tool's MCP config; on the server side
 
 ## `md.f` modes
 
-- `fit` (default): Readability → clean content.
-- `raw`: DOM → raw Markdown.
+- `fit` (default): Readability → clean content. ⚠️ strips most images (the `![alt](url)` refs are dropped).
+- `raw`: DOM → raw Markdown. ✅ keeps image references — use `f: raw` to preserve `![alt](url)` (alt + URL); `bm25` keeps them too.
 - `bm25`: relevance ranking **BM25 against `q`** → passages relevant to an intent.
 - `llm`: LLM summary with `q` (LLM provider required on the server side).
+
+> 💡 Images & bandwidth: `raw` vs `fit` changes only the text output, not network usage — image bytes
+> are never downloaded anyway (`text_mode: true` → `--blink-settings=imagesEnabled=false`). So `raw`
+> keeps `![alt](url)` at no bandwidth cost (useful behind a per-GB residential proxy).
 
 ## ⚠️ Don't misuse `ask`
 

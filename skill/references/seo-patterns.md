@@ -11,6 +11,12 @@ Readable Markdown (Readability), no nav/ads/footer. Ideal for analyzing a compet
 Give a URL + a query `q`; the server returns the passages **ranked by BM25 relevance**. Perfect for
 "what does this page say about \<intent\>?" without pulling in the whole page.
 
+## Keep image references + alt → `md` mode `raw`
+
+`fit` (the `/md` default) strips images; **`raw` preserves `![alt](url)`** (alt text + URL) at no extra
+bandwidth — image bytes aren't downloaded either way (`text_mode` disables images). Handy for content
+briefs or reconstructing an article's media. See [`mcp.md`](mcp.md) → `md.f` modes.
+
 ## Page SEO metadata → *SEO Metadata* op (n8n node) or extraction
 
 The `crawl4ai-plus` node (Advanced) has a dedicated **SEO Metadata** op. In REST/MCP, extract title,
