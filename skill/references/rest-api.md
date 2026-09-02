@@ -8,6 +8,21 @@ Server: `unclecode/crawl4ai` image, default port `11235`. Base: `{{CRAWL4AI_URL}
 - If `security.jwt_enabled: true` (in `config.yml`): `POST /token` (`{ "email": "..." }`) → JWT, then Bearer.
 - 0.8.x: security off by default (no token). **Check your config.**
 
+## Server-side proxy (authenticated upstream, image ≥ 0.9.3)
+
+Route the server's egress through an authenticated proxy by setting `HTTP_PROXY` / `HTTPS_PROXY =
+http://user:pass@host:port` on the **container**. **Supported** — the server's internal egress proxy
+injects the Basic auth itself (not Chromium). The proxy URL scheme must be `http://`. Add
+`NO_PROXY=localhost,127.0.0.1,::1`. A per-request override (`browser_config.proxy_config`) is
+**rejected** (`untrusted request`) — proxy is a server-side setting only.
+
+> ⚠️ **DNS gotcha (frequent false lead)**: the container must be able to **resolve the proxy
+> hostname**. If the host DNS (e.g. `systemd-resolved`) can't resolve the proxy domain, every crawl
+> fails with `ERR_TUNNEL_CONNECTION_FAILED` (and `curl: (5) Could not resolve proxy` when tested on the
+> server). Fix: give the container a working resolver (`--dns=1.1.1.1 --dns=8.8.8.8` in your docker
+> run / compose / Coolify options) — **not** a local no-auth forward proxy (that neither helps nor is
+> needed; auth is already handled internally).
+
 ## Endpoints
 
 | Method | Path | Body | Returns |
