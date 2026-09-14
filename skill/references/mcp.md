@@ -29,9 +29,11 @@ the server URL and Bearer auth. Check your tool's MCP config; on the server side
 - `bm25`: relevance ranking **BM25 against `q`** → passages relevant to an intent.
 - `llm`: LLM summary with `q` (LLM provider required on the server side).
 
-> 💡 Images & bandwidth: `raw` vs `fit` changes only the text output, not network usage — image bytes
-> are never downloaded either way (`text_mode: true` → `--blink-settings=imagesEnabled=false`). So `raw`
-> keeps `![alt](url)` at no bandwidth cost (useful behind a per-GB residential proxy).
+> 💡 Images & bandwidth — **`/md` only**: on `/md`, `raw` vs `fit` changes only the text output, not
+> network usage. `/md` runs under the **server config** (`text_mode: true`), so images aren't downloaded
+> here regardless of `f` — `raw` keeps `![alt](url)` at no bandwidth cost. ⚠️ **NOT true of `/crawl`**,
+> which uses only the request body: without `browser_config.text_mode`, `/crawl` downloads images and
+> fonts. See `rest-api.md` → *Images: /md vs /crawl* and *Bandwidth levers*.
 >
 > ⚠️ **`raw` is noisy.** Real tests (2 FR pages, `/md`) showed `raw` returns **2–6× more links**
 > (nav/menu/related/footer), **~3× more boilerplate** (cookie/menu/legal), **+40–80% text**, and many

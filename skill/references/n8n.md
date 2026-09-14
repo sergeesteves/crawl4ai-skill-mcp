@@ -45,3 +45,17 @@ Response: `results[0].markdown` / `.cleaned_html` / `.links` / `.extracted_conte
 
 - **Ready-made SEO ops** (SEO Metadata, Discover Links, Cosine Similarity) → the **node**.
 - **Full control / portability / no node to install** → **HTTP Request**.
+
+## Two-instance pattern (save the metered proxy)
+
+Behind a per-GB proxy, don't proxy everything. Run **two** Crawl4AI instances and fall back only on a
+**real** block:
+
+- **A — no proxy (default).** Every crawl starts here. Cheap.
+- **B — proxied (fallback).** Used only when A returns a real block: HTTP `403` / `429` or an anti-bot
+  page. **Not** on empty content — an empty body is usually JS rendering, so first **retry A with JS**
+  (`browser_config.params.java_script_enabled: true`) before going to B.
+
+Wiring: `HTTP Request → A` → `IF` (status 403/429 or anti-bot markers) → retry `A` with JS → still
+blocked? → `HTTP Request → B`. Keep B's `CRAWL4AI_UPSTREAM_PROXY` set and A's unset (cf.
+[`rest-api.md`](rest-api.md) → *Server-side proxy*).

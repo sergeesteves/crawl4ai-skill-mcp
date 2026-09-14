@@ -20,6 +20,9 @@ This skill covers **calling a self-hosted Crawl4AI server** (`unclecode/crawl4ai
 - **Server**: `{{CRAWL4AI_URL}}` (e.g. `http://localhost:11235`).
 - **Auth** (0.9+ = secure-by-default): `Authorization: Bearer <token>`.
 - ⚠️ Never hard-code the production URL or token — env vars (REST/app) or a credential (n8n).
+- 💸 **If the server routes egress through a per-GB proxy, ALL browser traffic is billed** — the target
+  page *plus* every third-party tracker and sub-resource it loads. Scope the proxy and cut bandwidth:
+  [`references/rest-api.md`](references/rest-api.md) → *Server-side proxy* & *Bandwidth levers*.
 
 ## The 3 access paths
 
@@ -40,3 +43,4 @@ structured extraction **without an LLM**, site mapping.
 1. Check the server version / exact fields via `GET {{CRAWL4AI_URL}}/schema` (public, no token).
 2. For editorial content → `/md` (`fit` or `bm25` mode). For structured extraction → `/crawl` + `extraction_strategy`.
 3. Never expose a production URL or any secret in code or logs.
+4. Behind a metered proxy: default to **no proxy**; cut bandwidth (`text_mode`, `cache_mode: "enabled"`, `wait_until: "domcontentloaded"`); proxy only as a fallback on a real block — cf. `rest-api.md` & `n8n.md`.

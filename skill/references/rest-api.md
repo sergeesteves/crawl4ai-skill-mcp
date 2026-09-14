@@ -10,18 +10,59 @@ Server: `unclecode/crawl4ai` image, default port `11235`. Base: `{{CRAWL4AI_URL}
 
 ## Server-side proxy (authenticated upstream, image ≥ 0.9.3)
 
-Route the server's egress through an authenticated proxy by setting `HTTP_PROXY` / `HTTPS_PROXY =
-http://user:pass@host:port` on the **container**. **Supported** — the server's internal egress proxy
-injects the Basic auth itself (not Chromium). The proxy URL scheme must be `http://`. Add
-`NO_PROXY=localhost,127.0.0.1,::1`. A per-request override (`browser_config.proxy_config`) is
-**rejected** (`untrusted request`) — proxy is a server-side setting only.
+> 💸 **Cost warning — a per-GB proxy is billed on EVERYTHING the browser fetches.** Once the server has
+> an upstream proxy, **100% of browser egress** goes through it: not just the target page but every
+> third-party tracker it loads (Clarity, HubSpot, analytics…) and every sub-resource. A 1 GB/month plan
+> can burn out in days. Scope the proxy tightly (below), cut bandwidth (next section), and prefer running
+> **without** it by default — see the two-instance pattern in [`n8n.md`](n8n.md).
 
-> ⚠️ **DNS gotcha (frequent false lead)**: the container must be able to **resolve the proxy
-> hostname**. If the host DNS (e.g. `systemd-resolved`) can't resolve the proxy domain, every crawl
-> fails with `ERR_TUNNEL_CONNECTION_FAILED` (and `curl: (5) Could not resolve proxy` when tested on the
-> server). Fix: give the container a working resolver (`--dns=1.1.1.1 --dns=8.8.8.8` in your docker
-> run / compose / Coolify options) — **not** a local no-auth forward proxy (that neither helps nor is
-> needed; auth is already handled internally).
+**Prefer `CRAWL4AI_UPSTREAM_PROXY`** over `HTTP_PROXY` / `HTTPS_PROXY`:
+
+- `CRAWL4AI_UPSTREAM_PROXY = http://user:pass@host:port` — read **first**, and scoped to the **browser
+  egress only**. The server's internal egress proxy injects the Basic auth itself (not Chromium). Scheme
+  must be `http://`.
+- `HTTP_PROXY` / `HTTPS_PROXY` are read by **every library in the container** (health checks, model
+  pulls…), so they push far more traffic through the paid proxy. Use only if `CRAWL4AI_UPSTREAM_PROXY`
+  is unavailable.
+- A per-request override (`browser_config.proxy_config`) is **rejected** (`untrusted request`) — the
+  proxy is a server-side setting only.
+
+**`NO_PROXY`** matches by **domain suffix** (subdomains included) or **IP/CIDR** — *not* regex. Put your
+own domains **and the third-party trackers** you don't want billed:
+`NO_PROXY=localhost,127.0.0.1,::1,yourdomain.com,clarity.ms,hubspot.com`.
+
+> ⚠️ **Hostname vs IP (anti-rebinding)**: the egress sends `CONNECT <pinned IP>` to the proxy, **never
+> the hostname**. Proxy providers that require a hostname in `CONNECT` refuse the request — this is what
+> gets accounts flagged for "requests without a hostname". Tested production workaround: a derived image
+> that rewrites the two upstream-path lines of `egress_proxy.py` from `_bracket(pin.ip)` to
+> `_bracket(pin.host)` (`sed` as `USER root`, then back to `USER appuser`), with a build-time test that
+> **fails the build** if those lines change upstream. A feature request is open on crawl4ai.
+
+> ⚠️ **DNS gotcha (frequent false lead)**: the container must be able to **resolve the proxy hostname**.
+> If host DNS (e.g. `systemd-resolved`) can't resolve it, every crawl fails with
+> `ERR_TUNNEL_CONNECTION_FAILED` (and `curl: (5) Could not resolve proxy` when tested on the server).
+> Fix: give the container a working resolver (`--dns=1.1.1.1 --dns=8.8.8.8`), **not** a local no-auth
+> forward proxy (auth is already handled internally).
+
+## Bandwidth levers (behind a metered proxy)
+
+> ⚠️ **The API silently drops a field placed in the wrong config class** (`UNTRUSTED_FIELD_ALLOWLIST`) —
+> no error, no warning. A bandwidth lever put in the wrong object simply does nothing. Put each field in
+> the **right** class (`browser_config` vs `crawler_config`) and confirm it took effect.
+
+**`browser_config.params`** (per browser):
+- `text_mode: true` — blocks images, fonts and media (biggest saver). **Does NOT block JS.**
+- `light_mode: true`, `avoid_ads: true` (fixed blocklist — does **not** include HubSpot), `avoid_css`,
+  `java_script_enabled`.
+
+**`crawler_config.params`** (per crawl):
+- `cache_mode: "enabled"` — set it **explicitly** to reuse cached fetches.
+- `wait_until: "domcontentloaded"` — stop at the DOM; `"load"` waits for **every** resource (more bytes).
+- `page_timeout` — capped at **60 s** server-side.
+- `max_retries` — default `0`; **any value > 0 reloads the page** (re-spends bandwidth).
+
+> ⚠️ **`java_script_enabled: false`** is cheap but **JS-rendered pages come back empty**. Never treat
+> "empty content" as "blocked" — retry with JS before concluding a block.
 
 ## Endpoints
 
@@ -60,6 +101,13 @@ and **enums are passed as strings**:
 - `llm`: LLM summary with `q` (requires an LLM provider configured on the server side).
 
 `c` = cache mode (`"0"` by default).
+
+## Images: `/md` vs `/crawl` (bandwidth)
+
+- **`/md`** uses the **server config** (`config.yml: text_mode: true`) → **no images downloaded**. The
+  `f` mode (fit/raw/bm25) changes only the **returned markdown**, never the bandwidth.
+- **`/crawl`** uses **only the request body** → without `browser_config.params.text_mode: true`, it
+  **downloads images and fonts**. Add `text_mode` to the body to keep `/crawl` light.
 
 ## Common `crawler_config.params` fields
 
