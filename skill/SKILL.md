@@ -43,4 +43,4 @@ structured extraction **without an LLM**, site mapping.
 1. Check the server version / exact fields via `GET {{CRAWL4AI_URL}}/schema` (public, no token).
 2. For editorial content → `/md` (`fit` or `bm25` mode). For structured extraction → `/crawl` + `extraction_strategy`.
 3. Never expose a production URL or any secret in code or logs.
-4. Behind a metered proxy: default to **no proxy**; cut bandwidth (`text_mode`, `cache_mode: "enabled"`, `wait_until: "domcontentloaded"`); proxy only as a fallback on a real block — cf. `rest-api.md` & `n8n.md`.
+4. Behind a metered proxy: default to **no proxy**; cut bandwidth (`text_mode`, `cache_mode: "enabled"`, `wait_until: "domcontentloaded"`) — **put each lever in the right config class** (`browser_config` vs `crawler_config`), and use `NO_PROXY` for trackers; proxy only as a fallback on a real block — cf. `rest-api.md` & `n8n.md`.

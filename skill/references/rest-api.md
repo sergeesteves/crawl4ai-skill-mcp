@@ -36,7 +36,7 @@ own domains **and the third-party trackers** you don't want billed:
 > gets accounts flagged for "requests without a hostname". Tested production workaround: a derived image
 > that rewrites the two upstream-path lines of `egress_proxy.py` from `_bracket(pin.ip)` to
 > `_bracket(pin.host)` (`sed` as `USER root`, then back to `USER appuser`), with a build-time test that
-> **fails the build** if those lines change upstream. A feature request is open on crawl4ai.
+> **fails the build** if those lines change upstream. Worth raising upstream as a feature request.
 
 > ⚠️ **DNS gotcha (frequent false lead)**: the container must be able to **resolve the proxy hostname**.
 > If host DNS (e.g. `systemd-resolved`) can't resolve it, every crawl fails with
@@ -52,14 +52,18 @@ own domains **and the third-party trackers** you don't want billed:
 
 **`browser_config.params`** (per browser):
 - `text_mode: true` — blocks images, fonts and media (biggest saver). **Does NOT block JS.**
-- `light_mode: true`, `avoid_ads: true` (fixed blocklist — does **not** include HubSpot), `avoid_css`,
-  `java_script_enabled`.
+- `light_mode: true`, `avoid_css`, `java_script_enabled`.
+- `avoid_ads: true` — a fixed **glob** list (`**/clarity.ms/**`, `**/google-analytics.com/**`…) that
+  matches the **bare domain, not subdomains**: in practice `www.googletagmanager.com`,
+  `www.google-analytics.com`, `connect.facebook.net` still load. No HubSpot at all. **Don't rely on it
+  to save proxy bandwidth — `NO_PROXY` (suffix match, subdomains included) is the real lever.**
 
 **`crawler_config.params`** (per crawl):
 - `cache_mode: "enabled"` — set it **explicitly** to reuse cached fetches.
 - `wait_until: "domcontentloaded"` — stop at the DOM; `"load"` waits for **every** resource (more bytes).
 - `page_timeout` — capped at **60 s** server-side.
-- `max_retries` — default `0`; **any value > 0 reloads the page** (re-spends bandwidth).
+- `max_retries` — default `0`; a value > 0 reloads the page **when crawl4ai detects a block
+  (`is_blocked`) or on a network error/timeout** (`_max_attempts = 1 + max_retries`), re-spending bandwidth.
 
 > ⚠️ **`java_script_enabled: false`** is cheap but **JS-rendered pages come back empty**. Never treat
 > "empty content" as "blocked" — retry with JS before concluding a block.
@@ -72,10 +76,10 @@ own domains **and the third-party trackers** you don't want billed:
 | POST | `/crawl/stream` | same as `/crawl` | streamed NDJSON (1 result per line) |
 | POST | `/md` | `{ "url", "f"?, "q"?, "c"? }` | Markdown only (see modes below) |
 | POST | `/html` | `{ "url" }` | preprocessed HTML (to build an extraction schema) |
-| POST | `/screenshot` | `{ "url", "screenshot_wait_for"?, "output_path"? }` | PNG (base64 or artifact id in 0.9) |
-| POST | `/pdf` | `{ "url", "output_path"? }` | PDF |
+| POST | `/screenshot` | `{ "url", "screenshot_wait_for"? }` | `artifact_id` (no `output_path` — removed in 0.9 → HTTP 400) |
+| POST | `/pdf` | `{ "url" }` | `artifact_id` (no `output_path` — removed in 0.9 → HTTP 400) |
 | POST | `/execute_js` | `{ "url", "scripts": ["return document.title", ...] }` | full CrawlResult + JS return values |
-| GET | `/health` | — | `{ "status": "healthy", "version": "..." }` (public) |
+| GET | `/health` | — | `{ "status": "ok", "timestamp": …, "version": "0.9.3" }` (public) |
 | GET | `/schema` | — | full API schema (public) |
 | GET | `/metrics` | — | Prometheus metrics |
 | GET | `/mcp/schema` | — | MCP tool schema (the server also exposes MCP) |
@@ -112,9 +116,14 @@ and **enums are passed as strings**:
 ## Common `crawler_config.params` fields
 
 `cache_mode` (`"bypass"|"enabled"|"disabled"`), `css_selector`, `excluded_tags`,
-`word_count_threshold`, `wait_for`, `page_timeout`, `js_code`, `scan_full_page`,
+`word_count_threshold`, `wait_for`, `page_timeout`, `scan_full_page`,
 `remove_consent_popups`, `extraction_strategy` (e.g. `JsonCssExtractionStrategy` → extraction
 **without an LLM**), `screenshot`, `pdf`, `check_robots_txt`, `exclude_external_links`.
+
+> ⚠️ **Rejected with HTTP 400 from a request body** (`UNTRUSTED_FORBIDDEN_FIELDS` — distinct from the
+> silent-drop allowlist above): BrowserConfig `proxy_config`, `extra_args`, `headers`, `cookies`;
+> CrawlerRunConfig `js_code`, `session_id`, `magic`, `simulate_user`, `deep_crawl_strategy`. Timeouts
+> are clamped to 60 s.
 
 ## curl
 

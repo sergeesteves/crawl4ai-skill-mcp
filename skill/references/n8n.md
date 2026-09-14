@@ -35,11 +35,14 @@ community node to install/maintain.
 ```json
 {
   "urls": ["{{ $json.url }}"],
+  "browser_config": { "type": "BrowserConfig", "params": { "text_mode": true } },
   "crawler_config": { "type": "CrawlerRunConfig", "params": { "cache_mode": "bypass" } }
 }
 ```
 
-Response: `results[0].markdown` / `.cleaned_html` / `.links` / `.extracted_content`.
+`browser_config.text_mode` keeps `/crawl` from downloading images and fonts (`/crawl` reads the
+BrowserConfig from the body only). Response: `results[0].markdown` / `.cleaned_html` / `.links` /
+`.extracted_content`.
 
 ## When to pick what
 
@@ -56,6 +59,11 @@ Behind a per-GB proxy, don't proxy everything. Run **two** Crawl4AI instances an
   page. **Not** on empty content — an empty body is usually JS rendering, so first **retry A with JS**
   (`browser_config.params.java_script_enabled: true`) before going to B.
 
-Wiring: `HTTP Request → A` → `IF` (status 403/429 or anti-bot markers) → retry `A` with JS → still
-blocked? → `HTTP Request → B`. Keep B's `CRAWL4AI_UPSTREAM_PROXY` set and A's unset (cf.
+Wiring: `HTTP Request → A` → `IF`:
+- HTTP `403` / `429` or anti-bot markers → `HTTP Request → B`;
+- content too short with no block signal → retry `A` with `java_script_enabled: true`,
+  `wait_until: "load"`, `delay_before_return_html: 2` → still short or blocked? → `B`.
+
+On A and B: `max_retries: 0`, and `text_mode` / `avoid_*` / `java_script_enabled` in **`browser_config`**,
+with JS **enabled** on B. Keep B's `CRAWL4AI_UPSTREAM_PROXY` set and A's unset (cf.
 [`rest-api.md`](rest-api.md) → *Server-side proxy*).

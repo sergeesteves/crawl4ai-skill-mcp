@@ -1,8 +1,10 @@
 # Self-hosted Crawl4AI — MCP access
 
-The server exposes an **MCP endpoint** (tool schema at `GET {{CRAWL4AI_URL}}/mcp/schema`, typically
-SSE transport under `/mcp`). It is therefore usable by **any MCP client** — Claude Desktop/Code, or
-any other compatible assistant.
+The server exposes an **MCP endpoint** (tool schema at `GET {{CRAWL4AI_URL}}/mcp/schema`; SSE transport
+at `/mcp/sse`). It is therefore usable by **any MCP client** — Claude Desktop/Code, or any other
+compatible assistant.
+
+> With `mcp-remote`, force `--transport sse-only`: the default `http-first` strategy times out after 60 s.
 
 ## Wiring the server as an MCP connector
 
